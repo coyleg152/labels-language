@@ -1,13 +1,6 @@
 // File: linked_list.c
-// Include this file *after* including <stdlib.h>
-struct linked_list
-{
-  struct linked_list * prev;
-  struct linked_list * next;
-  char val;
-};
-
-typedef struct linked_list linked_list;
+#include <stdlib.h>
+#include "linked_list.h"
 
 linked_list * ll_new(char init_val)
 {
@@ -17,6 +10,7 @@ linked_list * ll_new(char init_val)
   itr->val = init_val;
   return itr;
 }
+
 
 void ll_free(linked_list * itr)
 {
@@ -29,6 +23,7 @@ void ll_free(linked_list * itr)
   }
   free(itr);
 }
+
 
 void ll_push_prev(linked_list * itr, char init_val)
 {
@@ -43,6 +38,7 @@ void ll_push_prev(linked_list * itr, char init_val)
   }
 }
 
+
 void ll_push_next(linked_list * itr, char init_val)
 {
   if (itr == NULL) return;
@@ -56,6 +52,7 @@ void ll_push_next(linked_list * itr, char init_val)
   }
 }
 
+
 void ll_pop_prev(linked_list * itr)
 {
   if (itr == NULL || itr->prev == NULL) return;
@@ -64,6 +61,7 @@ void ll_pop_prev(linked_list * itr)
   itr->prev = temp;
   if (temp != NULL) temp->next = itr;
 }
+
 
 void ll_pop_next(linked_list * itr)
 {

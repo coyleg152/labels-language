@@ -1,12 +1,6 @@
 // File: dynamic_string.c
-// Include this file *after* including <stdlib.h>
-typedef struct
-{
-  char * chars;
-  int len;
-  int size;
-}
-string;
+#include <stdlib.h>
+#include "dynamic_string.h"
 
 string * str_new()
 {
@@ -17,12 +11,14 @@ string * str_new()
   return str;
 }
 
+
 void str_free(string * str)
 {
   if (str == NULL) return;
   free(str->chars);
   free(str);
 }
+
 
 void str_realloc_if_full(string * str)
 {
@@ -38,11 +34,13 @@ void str_realloc_if_full(string * str)
   }
 }
 
+
 void str_null_terminate(string * str)
 {
   str_realloc_if_full(str);
   str->chars[str->len] = '\0';
 }
+
 
 void str_pop_back(string * str)
 {
@@ -51,12 +49,14 @@ void str_pop_back(string * str)
   str->chars[str->len] = '\0';
 }
 
+
 void str_push_back(string * str, char c)
 {
   str_realloc_if_full(str);
   str->chars[str->len] = c;
   str->len += 1;
 }
+
 
 void str_append(string * str, char * arr)
 {
