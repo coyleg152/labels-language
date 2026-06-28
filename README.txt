@@ -18,10 +18,10 @@ characters like spaces and newlines which can be used to separate labels.
 
 How it works:
 
-The Labels interpreter (compiled from "labels.c") implements a Turing Machine
-with each cell holding a single byte value. There is initially only one cell,
-but a new cell is automatically created each time the TM pointer moves beyond
-its current boundaries, and every cell initially has a value of 0.
+The Labels interpreter implements a Turing Machine with each cell holding a
+single byte value. There is initially only one cell, but a new cell is
+automatically created each time the TM pointer moves beyond its current
+boundaries, and every cell initially has a value of 0.
 
 Labels code is traversed character by character, starting from the very first
 character and stopping at the end of the code. Each operation is performed as
@@ -89,11 +89,10 @@ If a matching ':' label cannot be found, the program will end:
 
 How to compile and run Labels on Linux:
 
-Step 1 - Ensure "labels.c", "linked_list.c", and "dynamic_string.c" are all
-in your current working directory
+Step 1 - Ensure all necessary files are in your working directory
 
-Step 2 - Compile labels.c by running
-$ gcc labels.c -o labels.out
+Step 2 - Compile the labels.out executable via the Makefile
+$ make
 
 Step 3 - Run labels.out with one or more code files like so
 $ ./labels.out (file1) (file2) ...
@@ -127,5 +126,4 @@ hi
 Additional notes:
 
 - More example code can be found in the Labels GitHub repository
-- Avoid adding new cells in an infinite loop as this will cause errors
 - To kill an active labels.out process, use "^C" or "kill" to avoid leaks
