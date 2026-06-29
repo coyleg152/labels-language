@@ -1,44 +1,51 @@
 // File: dynamic_string.c
 #include <stdlib.h>
+#include <stdbool.h>
 #include "dynamic_string.h"
+
+#define DEFAULT_SIZE 64
 
 string * str_new()
 {
   string * str = malloc(sizeof(string));
+  if (str == NULL) return NULL;
   str->len = 0;
-  str->size = 16;
+  str->size = DEFAULT_SIZE;
   str->chars = malloc(str->size);
+  if (str->chars == NULL)
+  {
+    free(str);
+    return NULL;
+  }
   return str;
 }
 
 
 void str_free(string * str)
 {
-  if (str == NULL) return;
-  free(str->chars);
-  free(str);
-}
-
-
-void str_realloc_if_full(string * str)
-{
-  if (str->size < 1)
+  if (str != NULL)
   {
-    str->size = 1;
-    str->chars = realloc(str->chars, str->size);
-  }
-  while (str->len >= str->size)
-  {
-    str->size *= 2;
-    str->chars = realloc(str->chars, str->size);
+    if (str->chars != NULL) free(str->chars);
+    free(str);
   }
 }
 
 
-void str_null_terminate(string * str)
+bool str_realloc_if_full(string * str)
 {
-  str_realloc_if_full(str);
+  if (str->len < str->size) return true;
+  str->size *= 2;
+  if (str->size < 0) return false;
+  str->chars = realloc(str->chars, str->size);
+  return (str->chars != NULL);
+}
+
+
+bool str_null_terminate(string * str)
+{
+  if (!str_realloc_if_full(str)) return false;
   str->chars[str->len] = '\0';
+  return true;
 }
 
 
@@ -50,16 +57,18 @@ void str_pop_back(string * str)
 }
 
 
-void str_push_back(string * str, char c)
+bool str_push_back(string * str, char c)
 {
-  str_realloc_if_full(str);
+  if (!str_realloc_if_full(str)) return false;
   str->chars[str->len] = c;
   str->len += 1;
+  return true;
 }
 
 
-void str_append(string * str, char * arr)
+bool str_append(string * str, char * arr)
 {
-  for (char * itr = arr; *itr != '\0'; itr++) str_push_back(str, *itr);
-  str_null_terminate(str);
+  for (char * itr = arr; *itr != '\0'; itr++)
+    if (!str_push_back(str, *itr)) return false;
+  return str_null_terminate(str);
 }

@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include "dynamic_string.h"
-#include "linked_list.h"
+#include "turing_machine.h"
 
 bool is_running;
 void exit_program() {is_running = false;}
@@ -14,7 +14,7 @@ void exit_program() {is_running = false;}
 
 int err(char * msg)
 {
-  fprintf(stderr, "%s", msg);
+  fprintf(stderr, "Error: %s\n", msg);
   return 1;
 }
 
@@ -75,85 +75,120 @@ int find_label_entry(string * code, string * label)
 
 int main(int argc, char ** argv)
 {
-  if (argc < 2) return err("Usage: ./labels.out (filename)\n");
+  if (argc < 2) return err("Usage: ./labels.out (filename) ...");
 
   is_running = true;
   signal(SIGINT, exit_program);
   signal(SIGTERM, exit_program);
 
   string * code = str_new();
+  if (code == NULL) return err("malloc() failed");
   char buf;
-  int fd;
+  int fd, i;
+  int retval = 0;
 
-  for (int i = 1; i < argc; i++)
+  for (i = 1; i < argc; i++)
   {
     fd = open(argv[i], O_RDONLY);
     if (fd < 0)
     {
       str_free(code);
-      return err("Failed to open file\n");
+      return err("open() failed");
     }
 
-    while (read(fd, &buf, 1) > 0) str_push_back(code, buf);
+    while (read(fd, &buf, 1) > 0)
+    {
+      if (!str_push_back(code, buf))
+      {
+        close(fd);
+        str_free(code);
+        return err("str_push_back() failed");
+      }
+    }
 
     close(fd);
-    str_push_back(code, ' ');
+    if (!str_push_back(code, ' '))
+    {
+      str_free(code);
+      return err("str_push_back() failed");
+    }
   }
 
-  linked_list * tm = ll_new(0);
+  turing_machine * tm = tm_new();
+  if (tm == NULL)
+  {
+    str_free(code);
+    return err("tm_new() failed");
+  }
 
-  for (int i = 0; is_running && i < code->len; i++)
+  for (i = 0; is_running && i < code->len; i++)
   {
     switch (code->chars[i])
     {
-      case '+':
-        tm->val += 1;
-        break;
-      case '-':
-        tm->val -= 1;
-        break;
-      case '<':
-        if (tm->prev == NULL) ll_push_prev(tm, 0);
-        tm = tm->prev;
-        break;
-      case '>':
-        if (tm->next == NULL) ll_push_next(tm, 0);
-        tm = tm->next;
-        break;
-      case '.':
-        printf("%c", tm->val);
-        break;
-      case '?':
-        if (tm->val == 0)
-        {
-          i = next_token(code, i);
-          if (i < code->len && is_label(code->chars[i]))
-          {
-            i = skip_label(code, i);
-            i--;
-          }
-        }
-        break;
-      default:
-        if (!is_label(code->chars[i])) break;
-        string * label = str_new();
-        do
-        {
-          str_push_back(label, code->chars[i]);
-          i++;
-        }
-        while (i < code->len && is_label(code->chars[i]));
+    case '+':
+      tm_inc_value(tm);
+      break;
+    case '-':
+      tm_dec_value(tm);
+      break;
+    case '<':
+      if (!tm_move_left(tm))
+      {
+        retval = err("tm_move_left() failed");
+        goto cleanup;
+      }
+      break;
+    case '>':
+      if (!tm_move_right(tm))
+      {
+        retval = err("tm_move_right() failed");
+        goto cleanup;
+      }
+      break;
+    case '.':
+      printf("%c", tm_get_value(tm));
+      break;
+    case '?':
+      if (tm_get_value(tm) == 0)
+      {
         i = next_token(code, i);
-        if (!(i < code->len && code->chars[i] == ':'))
+        if (i < code->len && is_label(code->chars[i]))
         {
-          i = find_label_entry(code, label);
+          i = skip_label(code, i);
+          i--;
         }
-        str_free(label);
-        break;
+      }
+      break;
+    default:
+      if (!is_label(code->chars[i])) break;
+      string * label = str_new();
+      if (label == NULL)
+      {
+        retval = err("str_new() failed");
+        goto cleanup;
+      }
+      do
+      {
+        if (!str_push_back(label, code->chars[i]))
+        {
+          retval = err("str_push_back() failed");
+          goto cleanup;
+        }
+        i++;
+      }
+      while (i < code->len && is_label(code->chars[i]));
+      i = next_token(code, i);
+      if (!(i < code->len && code->chars[i] == ':'))
+      {
+        i = find_label_entry(code, label);
+      }
+      str_free(label);
+      break;
     }
   }
 
+  cleanup:
+  tm_free(tm);
   str_free(code);
-  ll_free(tm);
-  return 0;
+  return retval;
 }

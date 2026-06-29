@@ -1,4 +1,4 @@
-C_FILES = dynamic_string.c linked_list.c
+C_FILES = dynamic_string.c turing_machine.c
 
 .PHONY: all
 all:
