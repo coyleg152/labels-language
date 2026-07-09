@@ -9,7 +9,7 @@
 #include "turing_machine.h"
 
 bool is_running;
-void exit_program() {is_running = false;}
+void exit_program(int sig) {is_running = false;}
 
 
 int err(char * msg)
@@ -177,7 +177,7 @@ int main(int argc, char ** argv)
         i++;
       }
       while (i < code->len && is_label(code->chars[i]));
-      i = next_token(code, i);
+      i = next_token(code, i - 1);
       if (!(i < code->len && code->chars[i] == ':'))
       {
         i = find_label_entry(code, label);
