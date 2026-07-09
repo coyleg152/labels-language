@@ -1,0 +1,11 @@
+arbitrary_sum:
+
+++++++++ ++++++++ ++++++++ ++++++++ ++++++++ ++++++++
+
+main_loop: < ?find_leftmost print_result
+
+find_leftmost: < ?find_leftmost > - find_rightmost
+
+find_rightmost: > ?find_rightmost < + main_loop
+
+print_result: > . > ++++++++++ .
