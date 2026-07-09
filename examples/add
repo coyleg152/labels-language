@@ -1,7 +1,0 @@
-add: ascii_zero
-add_left: ->+ go_left
-add_right: -<+ go_right
-ascii_zero: ++++++++ ++++++++ ++++++++ ++++++++ ++++++++ ++++++++
-go_left: < ?add_left >
-go_right: > ?add_right <
-result: .>++++++++++.
